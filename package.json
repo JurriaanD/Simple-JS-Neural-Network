@@ -1,0 +1,17 @@
+{
+  "name": "nn",
+  "version": "1.0.0",
+  "description": "A simple neural network",
+  "main": "sketch.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "JurriaanD",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^22.4.4"
+  }
+}
