@@ -7,7 +7,7 @@ test('Matrix add scalar', () => {
 	expect(tensor.data).toEqual(expected);
 });
 
-test('Matrix add matrix', () => {
+test('Matrix add matrix (static)', () => {
 	let tensor1 = new Tensor(2, 3);
 	tensor1.data = [[1, 2, 3], [4, 5, 6]];
 
@@ -15,6 +15,20 @@ test('Matrix add matrix', () => {
 	tensor2.data = [[5, 1, 3], [8, 7, 1]];
 
 	let result = Tensor.add(tensor1, tensor2);
+
+	let expected = [[6, 3, 6], [12, 12, 7]];
+
+	expect(result.data).toEqual(expected);
+});
+
+test('Matrix add matrix (not static)', () => {
+	let tensor1 = new Tensor(2, 3);
+	tensor1.data = [[1, 2, 3], [4, 5, 6]];
+
+	let tensor2 = new Tensor(2, 3);
+	tensor2.data = [[5, 1, 3], [8, 7, 1]];
+
+	let result = tensor1.add(tensor2);
 
 	let expected = [[6, 3, 6], [12, 12, 7]];
 
@@ -32,7 +46,7 @@ test('Matrix multiply with scalar', () => {
 	expect(result.data).toEqual(expected);
 });
 
-test ('Matrix mulitply with matrix', () => {
+test ('Matrix mulitply with matrix (static)', () => {
 	let tensor1 = new Tensor(2, 3);
 	tensor1.data = [[5, 2, 4], [8, 4, 3]];
 
@@ -40,6 +54,20 @@ test ('Matrix mulitply with matrix', () => {
 	tensor2.data = [[2, 5, 3, 7, 5], [5, 7, 5, 7, 2], [1, 8, 7, 6, 2]];
 
 	let result = Tensor.mul(tensor1, tensor2);
+
+	let expected = [[24, 71, 53, 73, 37], [39, 92, 65, 102, 54]];
+
+	expect(result.data).toEqual(expected);
+});
+
+test ('Matrix mulitply with matrix (not static)', () => {
+	let tensor1 = new Tensor(2, 3);
+	tensor1.data = [[5, 2, 4], [8, 4, 3]];
+
+	let tensor2 = new Tensor(3, 5);
+	tensor2.data = [[2, 5, 3, 7, 5], [5, 7, 5, 7, 2], [1, 8, 7, 6, 2]];
+
+	let result = tensor1.mul(tensor2);
 
 	let expected = [[24, 71, 53, 73, 37], [39, 92, 65, 102, 54]];
 

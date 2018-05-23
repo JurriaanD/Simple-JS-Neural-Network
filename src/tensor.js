@@ -33,20 +33,45 @@ class Tensor {
             result.map(x => x * other);
             return result;
         } else if (other instanceof Tensor) {
-            if (tensor.cols != other.rows) throw new Error("Incompatible dimensions");
+            if (tensor.cols != other.cols || tensor.rows != other.rows) 
+                throw new Error("Matrices must have the same dimensions for hadamard multiplication.")
 
-            let result = new Tensor(tensor.rows, other.cols);
-            result.map((val, x, y) => {
-                let cumsum = 0;
-                for (let a = 0; a < tensor.cols; a++) {
-                    cumsum += tensor.data[y][a] * other.data[a][x];
-                }
-                return cumsum;
-            });
+            let result = new Tensor(tensor.rows, tensor.cols);
+            result.map((val, x, y) => val * other.data[y][x]);
             return result;
         } else {
             throw new Error("Second argument has to be a number or tensor.");
         }
+    }
+
+    mul(other) {
+        if (!isNaN(other)) {
+            this.map(x => x * other);
+            return this;
+        } else if (other instanceof Tensor) {
+            if (this.cols != other.cols || this.rows != other.rows) 
+                throw new Error("Matrices must have the same dimensions for hadamard multiplication.")
+            
+            this.map((val, x, y) => val * other.data[y][x]);
+            return this;
+        } else {
+            throw new Error("Second argument has to be a number or tensor.");
+        }
+    }
+
+    static cross(tensor, other) {
+        if (!(tensor instanceof Tensor) || !(other instanceof Tensor)) throw new Error("Arguments should be tensors.");
+        if (tensor.cols != other.rows) throw new Error("Incompatible dimensions");
+
+        let result = new Tensor(tensor.rows, other.cols);
+        result.map((val, x, y) => {
+            let cumsum = 0;
+            for (let a = 0; a < tensor.cols; a++) {
+                cumsum += tensor.data[y][a] * other.data[a][x];
+            }
+            return cumsum;
+        });
+        return result;
     }
 
     static add(tensor, other) {
@@ -61,6 +86,19 @@ class Tensor {
             let result = tensor.copy();
             result.map((val, x, y) => val + other.data[y][x]);
             return result;
+        } else {
+            throw new Error("Unsupported operation");
+        }
+    }
+
+    add(other) {
+        if (!isNaN(other)) {          
+            this.map((val, x, y) => val + other);
+            return this;
+        } else if (other instanceof Tensor) {
+            if (other.cols != this.cols || other.rows != this.rows) throw new Error("Incompatible dimensions.");
+            this.map((val, x, y) => val + other.data[y][x]);
+            return this;
         } else {
             throw new Error("Unsupported operation");
         }
@@ -91,6 +129,10 @@ class Tensor {
 
     print() {
         console.table(this.data);
+    }
+
+    toString() {
+        return this.data.toString();
     }
 
     static transpose(tensor) {
