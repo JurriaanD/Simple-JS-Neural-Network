@@ -95,7 +95,7 @@ class Tensor {
 
     static transpose(tensor) {
         let result = new Tensor(tensor.cols, tensor.rows);
-        result.map((val, x, y) => tensor.data[y][x]);
+        result.map((val, x, y) => tensor.data[x][y]);
         return result;
     }
 
