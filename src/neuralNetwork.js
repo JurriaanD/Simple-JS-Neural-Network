@@ -38,7 +38,7 @@ class NeuralNetwork {
         for (let i = this.Nblayers-1; i > 0; i--) {
             // Calculate the error
             this.layers[i].error = i == this.Nblayers-1
-                ? Tensor.sub(Tensor.from1DArray(expected), this.layers[i].value)
+                ? Tensor.sub(Tensor.fromArray(expected), this.layers[i].value)
                 : Tensor.cross(Tensor.transpose(this.layers[i+1].incomingWeights), this.layers[i+1].error);
             let gradients = 
                 Tensor.map(this.layers[i].value, this.activationFunction.d)
@@ -55,7 +55,7 @@ class NeuralNetwork {
     predict(inputs) {
         if (inputs.length != this.layers[0].nodes) throw new Error("Input data does not match input nodes");
 
-        let values = Tensor.from1DArray(inputs);
+        let values = Tensor.fromArray(inputs);
         this.layers[0].value = values.copy();
 
         for (let i = 1; i < this.Nblayers; i++) {            
@@ -66,6 +66,6 @@ class NeuralNetwork {
             this.layers[i].value = values.copy();     
         }
 
-        return Tensor.tensor1DToArray(values);
+        return Tensor.tensorToArray(values);
     }
 }

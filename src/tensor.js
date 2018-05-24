@@ -30,14 +30,14 @@ class Tensor {
 
         if (!isNaN(other)) {
             let result = tensor.copy();
-            result.map(x => x * other);
+            result.map((val, x, y) => val * other);
             return result;
         } else if (other instanceof Tensor) {
             if (tensor.cols != other.cols || tensor.rows != other.rows) 
-                throw new Error("Matrices must have the same dimensions for hadamard multiplication.")
+                throw new Error("Matrices must have the same dimensions for hadamard (element-wise) multiplication.")
 
             let result = new Tensor(tensor.rows, tensor.cols);
-            result.map((val, x, y) => val * other.data[y][x]);
+            result.map((val, x, y) => tensor.data[y][x] * other.data[y][x]);
             return result;
         } else {
             throw new Error("Second argument has to be a number or tensor.");
@@ -46,11 +46,11 @@ class Tensor {
 
     mul(other) {
         if (!isNaN(other)) {
-            this.map(x => x * other);
+            this.map((val, x, y) => val * other);
             return this;
         } else if (other instanceof Tensor) {
             if (this.cols != other.cols || this.rows != other.rows) 
-                throw new Error("Matrices must have the same dimensions for hadamard multiplication.")
+                throw new Error("Matrices must have the same dimensions for hadamard (element-wise) multiplication.")
             
             this.map((val, x, y) => val * other.data[y][x]);
             return this;
@@ -61,7 +61,7 @@ class Tensor {
 
     static cross(tensor, other) {
         if (!(tensor instanceof Tensor) || !(other instanceof Tensor)) throw new Error("Arguments should be tensors.");
-        if (tensor.cols != other.rows) throw new Error("Incompatible dimensions");
+        if (tensor.cols != other.rows) throw new Error("Incompatible dimensions.");
 
         let result = new Tensor(tensor.rows, other.cols);
         result.map((val, x, y) => {
@@ -121,6 +121,19 @@ class Tensor {
         }
     }
 
+    sub(other) {
+        if (!isNaN(other)) {          
+            this.map((val, x, y) => val - other);
+            return this;
+        } else if (other instanceof Tensor) {
+            if (other.cols != this.cols || other.rows != this.rows) throw new Error("Incompatible dimensions.");
+            this.map((val, x, y) => val - other.data[y][x]);
+            return this;
+        } else {
+            throw new Error("Unsupported operation");
+        }
+    }
+
     copy() {
         let result = new Tensor(this.rows, this.cols);
         result.map((val, x, y) => this.data[y][x]);
@@ -129,10 +142,6 @@ class Tensor {
 
     print() {
         console.table(this.data);
-    }
-
-    toString() {
-        return this.data.toString();
     }
 
     static transpose(tensor) {
@@ -150,18 +159,30 @@ class Tensor {
         return this;
     }
 
-    static from1DArray(arr) {
-        let result = new Tensor(arr.length, 1);
-        for (let i = 0; i < arr.length; i++) {
-            result.data[i][0] = arr[i];
-        }
-        return result;
+    static fromArray(arr) {
+        if (!(arr instanceof Array)) throw new Error("Argument must be an array.");
+        // 1D array is annoying
+        if (arr[0].length === undefined) {
+            let result = new Tensor(arr.length, 1);
+            result.map((val, x, y) => arr[x]);
+            return result;
+        } else {
+            // Probably should check if all rows have the same length
+            let result = new Tensor(arr.length, arr[0].length);
+            result.map((val, x, y) => arr[y][x]);
+            return result;
+        }        
     }
 
-    static tensor1DToArray(tensor) {
-        let result = [];
-        for (let i = 0; i < tensor.rows; i++) {
-            result[i] = tensor.data[i][0];
+    static tensorToArray(tensor) {
+        // 1D array
+        if (tensor.rows == 1) {
+            return tensor.data[0].slice(0);
+        } else {
+            let result = new Array(tensor.rows);
+            for (let y = 0; y < tensor.rows; y++) {
+                result[y] = tensor.data[y].slice(0);
+            }
         }
         return result;
     }
