@@ -1,3 +1,14 @@
+class ActivationFunction{
+    constructor(func, derivative) {
+        this.f = func;
+        this.d = derivative;
+    }
+}
+
+const sigmoid = new ActivationFunction((val, x, y) => 1/(1+exp(-1*val)), (val, x, y)  => val*(1-val));
+const ReLU = new ActivationFunction((val, x, y) => Math.max(0,val), (val, x, y)  => (val >= 0) ? 1 : 0);
+const tanh = new ActivationFunction((val, x, y) => Math.tanh(val), (val, x, y)  => 1 - (val*val));
+
 class NeuralNetwork {
     constructor(inputLayer, hiddenLayers, outputLayer, activation = ReLU) {
         // this.layers: the total number of layers in this NN
@@ -14,7 +25,7 @@ class NeuralNetwork {
         for (let i = 0; i < this.Nblayers; i++) {
             this.layers.push({
                 nodes: nodesPerLayer[i],
-                bias: new Tensor(nodesPerLayer[i], 1).randomize(),
+                bias: i == 0 ? new Tensor(nodesPerLayer[i], 1) : new Tensor(nodesPerLayer[i], 1).randomize(),
                 error: new Tensor(nodesPerLayer[i], 1),
                 value: new Tensor(nodesPerLayer[i], 1),
                 incomingWeights: i == 0 ? null : new Tensor(nodesPerLayer[i], nodesPerLayer[i-1])
@@ -22,7 +33,7 @@ class NeuralNetwork {
         }
 
         this.activationFunction = activation;
-        this.learningRate = 0.1;
+        this.learningRate = 0.01;
     }
 
     /**
@@ -32,9 +43,14 @@ class NeuralNetwork {
      * @param {Number array} expected Array of the expected output given the input
      */
     train(input, expected) {
-        // Set the values for each layer
+        if (input.length != this.layers[0].nodes || expected.length != this.layers[this.Nblayers-1].nodes)
+            throw new Error("Input or expected output does not match the number of input/output nodes.");
+
+        // Set this.layers.value for each layer with the given input
         this.predict(input);
    
+        // Starting to from the output layer, we work back to the first hidden layer
+        // For each layer, we calculate the layer error and tweak the weights and bias accordingly.
         for (let i = this.Nblayers-1; i > 0; i--) {
             // Calculate the error
             this.layers[i].error = i == this.Nblayers-1
@@ -68,4 +84,8 @@ class NeuralNetwork {
 
         return Tensor.tensorToArray(values);
     }
+}
+
+if (typeof module !== 'undefined') {
+    module.exports = NeuralNetwork;
 }

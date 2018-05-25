@@ -165,7 +165,10 @@ test ('Matrix cross Matrix (static)', () => {
 	]);
 
 	let result = Tensor.cross(tensor1, tensor2);
-	let expected = [[24, 71, 53, 73, 37], [39, 92, 65, 102, 54]];
+	let expected = [
+		[24, 71, 53, 73, 37],
+		[39, 92, 65, 102, 54]
+	];
 	expect(result.data).toEqual(expected);
 });
 
@@ -224,3 +227,21 @@ test ('Matrix transpose (static)', () => {
 	let expected = [[5, 8], [2, 4], [4, 3]];
 	expect(result.data).toEqual(expected);
 })
+
+test('1D Array to Matrix', () => {
+	let inp = [0.41, 0.78];
+	let out = Tensor.fromArray(inp);
+	let expected = [[0.41], [0.78]];
+	expect(out.data).toEqual(expected);
+});
+
+test('Copy Matrix', () => {
+	let tensor1 = Tensor.fromArray([
+		[1, 2, 3], 
+		[4, 5, 6],
+		[7, 8, 9]
+	]);
+	let tensor2 = tensor1.copy();
+
+	expect(tensor2.data).toEqual(tensor1.data);
+});

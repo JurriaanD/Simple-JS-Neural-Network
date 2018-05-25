@@ -61,7 +61,7 @@ class Tensor {
 
     static cross(tensor, other) {
         if (!(tensor instanceof Tensor) || !(other instanceof Tensor)) throw new Error("Arguments should be tensors.");
-        if (tensor.cols != other.rows) throw new Error("Incompatible dimensions.");
+        if (tensor.cols != other.rows) throw new Error("Incompatible dimensions: " + tensor.rows+"x"+tensor.cols +" and " + other.rows+"x"+other.cols+".");
 
         let result = new Tensor(tensor.rows, other.cols);
         result.map((val, x, y) => {
@@ -164,7 +164,9 @@ class Tensor {
         // 1D array is annoying
         if (arr[0].length === undefined) {
             let result = new Tensor(arr.length, 1);
-            result.map((val, x, y) => arr[x]);
+            for (let i = 0; i < arr.length; i++) {
+                result.data[i][0] = arr[i];
+            }
             return result;
         } else {
             // Probably should check if all rows have the same length
