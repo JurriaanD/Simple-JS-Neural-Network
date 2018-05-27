@@ -1,16 +1,16 @@
 class ActivationFunction{
     constructor(func, derivative) {
-        this.f = func;
-        this.d = derivative;
+        this.func = func;
+        this.dfunc = derivative;
     }
 }
 
-const sigmoid = new ActivationFunction((val, x, y) => 1/(1+exp(-1*val)), (val, x, y)  => val*(1-val));
+const sigmoid = new ActivationFunction((val) => 1/(1+exp(-val)), (val)  => val*(1-val));
 const ReLU = new ActivationFunction((val, x, y) => Math.max(0,val), (val, x, y)  => (val >= 0) ? 1 : 0);
 const tanh = new ActivationFunction((val, x, y) => Math.tanh(val), (val, x, y)  => 1 - (val*val));
 
 class NeuralNetwork {
-    constructor(inputLayer, hiddenLayers, outputLayer, activation = ReLU) {
+    constructor(inputLayer, hiddenLayers, outputLayer, activation = sigmoid) {
         // this.layers: the total number of layers in this NN
         //                  there are hiddenLayers.length hidden layer, one input and one output layer
         this.Nblayers = hiddenLayers.length + 2;
@@ -28,12 +28,12 @@ class NeuralNetwork {
                 bias: i == 0 ? new Tensor(nodesPerLayer[i], 1) : new Tensor(nodesPerLayer[i], 1).randomize(),
                 error: new Tensor(nodesPerLayer[i], 1),
                 value: new Tensor(nodesPerLayer[i], 1),
-                incomingWeights: i == 0 ? null : new Tensor(nodesPerLayer[i], nodesPerLayer[i-1])
+                incomingWeights: i == 0 ? null : new Tensor(nodesPerLayer[i], nodesPerLayer[i-1]).randomize()
             });
         }
 
         this.activationFunction = activation;
-        this.learningRate = 0.01;
+        this.learningRate = 0.1;
     }
 
     /**
@@ -49,22 +49,26 @@ class NeuralNetwork {
         // Set this.layers.value for each layer with the given input
         this.predict(input);
    
+        // Calculate the error for the output layer
+        this.layers[this.Nblayers-1].error = Tensor.sub(Tensor.fromArray(expected), this.layers[this.Nblayers-1].value);
+
         // Starting to from the output layer, we work back to the first hidden layer
         // For each layer, we calculate the layer error and tweak the weights and bias accordingly.
-        for (let i = this.Nblayers-1; i > 0; i--) {
+        for (let i = this.Nblayers-2; i >= 0; i--) {
             // Calculate the error
-            this.layers[i].error = i == this.Nblayers-1
-                ? Tensor.sub(Tensor.fromArray(expected), this.layers[i].value)
-                : Tensor.cross(Tensor.transpose(this.layers[i+1].incomingWeights), this.layers[i+1].error);
-            let gradients = 
-                Tensor.map(this.layers[i].value, this.activationFunction.d)
-                .mul(this.layers[i].error)
-                .mul(this.learningRate);
+            this.layers[i].error = Tensor.cross(Tensor.transpose(this.layers[i+1].incomingWeights), this.layers[i+1].error);
 
-            let deltas = Tensor.cross(gradients, Tensor.transpose(this.layers[i-1].value));
+            let gradients = Tensor.map(this.layers[i+1].value, this.activationFunction.dfunc)
+            .mul(this.layers[i+1].error)
+            .mul(this.learningRate);
 
-            this.layers[i].incomingWeights.add(deltas);
-            this.layers[i].bias.add(gradients);
+            let deltas = Tensor.cross(
+                gradients,
+                Tensor.transpose(this.layers[i].value)
+            );
+
+            this.layers[i+1].incomingWeights.add(deltas);
+            this.layers[i+1].bias.add(gradients);
         }
     }
 
@@ -74,15 +78,19 @@ class NeuralNetwork {
         let values = Tensor.fromArray(inputs);
         this.layers[0].value = values.copy();
 
-        for (let i = 1; i < this.Nblayers; i++) {            
+        for (let i = 0; i < this.Nblayers-1; i++) {            
             values =
-             Tensor.cross(this.layers[i].incomingWeights, this.layers[i-1].value)
-             .add(this.layers[i].bias)
-             .map(this.activationFunction.f);
-            this.layers[i].value = values.copy();     
+             Tensor.cross(this.layers[i+1].incomingWeights, this.layers[i].value)
+             .add(this.layers[i+1].bias)
+             .map(this.activationFunction.func);
+            this.layers[i+1].value = values.copy();     
         }
 
         return Tensor.tensorToArray(values);
+    }
+
+    setLearningRate(rate) {
+        this.learningRate = rate;
     }
 }
 

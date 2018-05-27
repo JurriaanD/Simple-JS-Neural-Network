@@ -153,7 +153,7 @@ class Tensor {
     randomize() {
         for (let y = 0; y < this.rows; y++) {
             for (let x = 0; x < this.cols; x++) {
-                this.data[y][x] = Math.random();
+                this.data[y][x] = Math.random() - 0.5;
             }
         }
         return this;
@@ -185,8 +185,8 @@ class Tensor {
             for (let y = 0; y < tensor.rows; y++) {
                 result[y] = tensor.data[y].slice(0);
             }
-        }
-        return result;
+            return result;
+        }        
     }
 }
 

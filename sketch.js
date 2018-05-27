@@ -1,32 +1,52 @@
 let nn;
+let lr_slider;
 
-let possibilities = [
-	{input: [0, 0], output:[0]},
-	{input: [0, 1], output:[1]},
-	{input: [1, 0], output:[1]},
-	{input: [0, 1], output:[0]},
+let training_data = [{
+    inputs: [0, 0],
+    outputs: [0]
+  },
+  {
+    inputs: [0, 1],
+    outputs: [1]
+  },
+  {
+    inputs: [1, 0],
+    outputs: [1]
+  },
+  {
+    inputs: [1, 1],
+    outputs: [0]
+  }
 ];
 
 function setup() {
-	createCanvas(100, 100);
-	nn = new NeuralNetwork(2, [2], 1);
-	noLoop();
+  createCanvas(400, 400);
+  nn = new NeuralNetwork(2, [16, 8, 4], 1);
+  lr_slider = createSlider(0.01, 0.5, 0.1, 0.01);
 }
 
 function draw() {
-	let map = [false, true];
+  background(0);
 
-	for (let i = 0; i < 500; i++) {		
-		let choice = random(possibilities);
-		nn.train(choice.input, choice.output);
-		//console.log(nn.layers[2].incomingWeights.data.toString());
-	}
+  for (let i = 0; i < 10; i++) {
+    let data = random(training_data);
+    nn.train(data.inputs, data.outputs);
+  }
 
-	let choice = random(possibilities);
-	let guess = nn.predict(choice.input);
-	let correctGuess = Math.abs(guess[0] - choice.output[0]) < 0.5;
+  nn.setLearningRate(lr_slider.value());
 
-	fill(!correctGuess ? 255:0, correctGuess ? 255:0, 0);
-	rect(0, 0, width, height);
-	console.log(nn.layers[nn.Nblayers-1].error.data[0]);
+  let resolution = 10;
+  let cols = width / resolution;
+  let rows = height / resolution;
+  for (let i = 0; i < cols; i++) {
+    for (let j = 0; j < rows; j++) {
+      let x1 = i / cols;
+      let x2 = j / rows;
+      let inputs = [x1, x2];
+      let y = nn.predict(inputs);
+      noStroke();
+      fill(y * 255);
+      rect(i * resolution, j * resolution, resolution, resolution);
+    }
+  }
 }
